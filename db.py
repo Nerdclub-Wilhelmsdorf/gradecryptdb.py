@@ -1,7 +1,8 @@
 import os
-import rsa
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 
-publicKey, privateKey = rsa.newkeys(512)
+encryptKey = b'\x0f`\xf9g\x06\x19\x02\x19\xa24\xd6\x1a[\x89g\x80' #change key in production
 
 def addKey(key, value):
     strKey = str(key)
@@ -52,7 +53,22 @@ def hasKey(key):
         return False
 
 def encrypt(value):
-    return rsa.encrypt(value.encode(),publicKey)
+    cipher = AES.new(encryptKey, AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(value.encode('utf-8'))
+    nonce = cipher.nonce
 
-def decrypt(value):
-    return rsa.decrypt(value, privateKey).decode()
+    save = str(nonce) + " " + str(ciphertext) + " " + str(tag)
+    return save
+
+def decrypt(save):
+    save = save.split(" ")
+    nonce = bytes(save[0],'utf-8')
+    ciphertext = bytes(save[1], 'utf-8')
+    tag = bytes(save[2], 'utf-8')
+    cipher = AES.new(encryptKey, AES.MODE_EAX, nonce)
+    data = cipher.decrypt_and_verify(ciphertext, tag)
+    return data
+
+def test():
+    data = "test"
+    return decrypt(encrypt(data)) == data
