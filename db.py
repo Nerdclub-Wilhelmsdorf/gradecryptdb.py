@@ -1,8 +1,8 @@
+import base64
 import os
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-
-encryptKey = b'\x0f`\xf9g\x06\x19\x02\x19\xa24\xd6\x1a[\x89g\x80' #change key in production
+ENCRYPTION_KEY = b'W6k<\xb2\xa07\xae\x15\xb5\x18\xaa\x06!\xfd\x18'
 
 def addKey(key, value):
     strKey = str(key)
@@ -52,23 +52,20 @@ def hasKey(key):
     else:
         return False
 
-def encrypt(value):
-    cipher = AES.new(encryptKey, AES.MODE_EAX)
-    ciphertext, tag = cipher.encrypt_and_digest(value.encode('utf-8'))
-    nonce = cipher.nonce
+def encrypt(data):
+    cipher = AES.new(ENCRYPTION_KEY, AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(data.encode('utf-8'))
+    return base64.b64encode(ciphertext).decode('utf-8') + " " + base64.b64encode(cipher.nonce).decode('utf-8')
 
-    save = str(nonce) + " " + str(ciphertext) + " " + str(tag)
-    return save
-
-def decrypt(save):
-    save = save.split(" ")
-    nonce = bytes(save[0],'utf-8')
-    ciphertext = bytes(save[1], 'utf-8')
-    tag = bytes(save[2], 'utf-8')
-    cipher = AES.new(encryptKey, AES.MODE_EAX, nonce)
-    data = cipher.decrypt_and_verify(ciphertext, tag)
-    return data
+def decrypt(data):
+    data = data.split(" ")
+    nonce = base64.b64decode(data[1])
+    data = base64.b64decode(data[0])
+    cipher = AES.new(ENCRYPTION_KEY, AES.MODE_EAX, nonce=nonce)
+    plaintext = cipher.decrypt(data)
+    return plaintext.decode('utf-8')
 
 def test():
     data = "test"
-    return decrypt(encrypt(data)) == data
+    encrypted_data = encrypt(data)
+    return decrypt(encrypted_data) == data

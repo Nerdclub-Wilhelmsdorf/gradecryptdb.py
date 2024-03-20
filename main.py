@@ -1,3 +1,5 @@
 import db
 
-db.test()
+db.addKey("key1", "value1")
+
+print(db.readKey("key1"))
