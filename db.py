@@ -1,8 +1,27 @@
 import base64
 import os
+import json
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 ENCRYPTION_KEY = b'W6k<\xb2\xa07\xae\x15\xb5\x18\xaa\x06!\xfd\x18'
+
+def addDocUnsafe(name, data):
+    strKey = str(name)
+    strVal = dic2json(str(data))
+    with open(strKey + ".json", 'w') as file:
+        file.write(str(strVal))
+def readDocUnsafe(name):
+    strKey = str(name)
+    if hasKey(strKey + ".json")==True:
+        with open(strKey+".json", 'r') as file:
+            return json2dic(file.read())
+    elif hasKey(strKey + ".json")==False:
+        print("Key does not exist")
+        return None
+def hasDoc(name):
+    return hasKey(str(name) + ".json")
+def deleteDoc(name):
+    deleteKey(str(name) + ".json")
 
 def addKey(key, value):
     strKey = str(key)
@@ -69,3 +88,10 @@ def test():
     data = "test"
     encrypted_data = encrypt(data)
     return decrypt(encrypted_data) == data
+
+def json2dic(jsonStr):
+    return json.loads(jsonStr)
+
+
+def dic2json(map):
+    return json.dumps(map, sort_keys=True, indent=4, separators=(',', ': '))
